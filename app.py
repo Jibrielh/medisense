@@ -34,8 +34,7 @@ with st.sidebar:
         if st.button(ex[:60] + ("…" if len(ex) > 60 else ""), use_container_width=True):
             st.session_state["text"] = ex
     st.divider()
-    place = st.text_input("Find care near (optional)", placeholder="e.g. Tambaram, Chennai")
-    offline = st.checkbox("Use the offline map snapshot (SRM KTR)", value=not place)
+    place = st.text_input("Find care in the U.S. (optional)", placeholder="City, State or ZIP code")
     st.divider()
     eng = engine()
     st.caption(f"Model: RF+DT soft-voting ensemble · {eng.classifier.meta.get('n_classes')} conditions · "
@@ -47,7 +46,7 @@ text = st.text_area("Describe your symptoms in plain English", key="text", heigh
 go = st.button("Analyse", type="primary")
 
 if go and text.strip():
-    r = eng.diagnose(text, place=place or None, offline=offline)
+    r = eng.diagnose(text, place=place or None)
     sy = r["symptoms"]
     c1, c2 = st.columns([3, 2])
     with c1:
@@ -93,6 +92,8 @@ if go and text.strip():
                 st.markdown(f"**[{s['n']}] {s['title']}** (score {s['score']})  \n{s['text']}")
         st.caption(f"Generation mode: {r['explanation']['mode']}")
 
+    if r["care"] and r["care"].get("error"):
+        st.warning(r["care"]["error"])
     if r["care"] and r["care"].get("providers"):
         st.subheader("4 · Nearby care, ranked")
         st.caption(f"Near {r['care']['origin']['label']} · {r['care']['source']} · {r['care']['attribution']}")

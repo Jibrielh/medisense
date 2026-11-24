@@ -1,7 +1,7 @@
 """Command line interface.
 
     python -m neurosy.cli "high fever for 3 days, pain behind my eyes, joint pain and a rash"
-    python -m neurosy.cli "burning when i pee and peeing a lot" --place "Guindy, Chennai"
+    python -m neurosy.cli "burning when i pee and peeing a lot" --place "Seattle, WA"
 """
 from __future__ import annotations
 
@@ -59,13 +59,12 @@ def render(r: dict) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Medisense symptom checker (educational).")
     ap.add_argument("text", help="describe the symptoms in plain English")
-    ap.add_argument("--place", help="city or area to find nearby care, e.g. 'Tambaram, Chennai'")
+    ap.add_argument("--place", help="U.S. city, state, or ZIP code to find nearby care, e.g. 'Seattle, WA'")
     ap.add_argument("--lat", type=float)
     ap.add_argument("--lon", type=float)
-    ap.add_argument("--offline-care", action="store_true", help="use the bundled OSM snapshot for providers")
     ap.add_argument("--json", action="store_true", help="print the full JSON result")
     a = ap.parse_args(argv)
-    r = NeuroSyRAG().diagnose(a.text, place=a.place, lat=a.lat, lon=a.lon, offline=a.offline_care)
+    r = NeuroSyRAG().diagnose(a.text, place=a.place, lat=a.lat, lon=a.lon)
     print(json.dumps(r, indent=2) if a.json else render(r))
     return 0
 

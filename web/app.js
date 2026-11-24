@@ -60,20 +60,24 @@ function render(r) {
     $("sources").innerHTML = r.explanation.sources.map((s) => `<li><b>${esc(s.title)}</b> <span class="muted small">score ${s.score}</span><br/>${esc(s.text)}</li>`).join("");
   }
   $("latency").textContent = `Analysed in ${r.latency_ms} ms, entirely in your browser`;
-  care({ sample: true });
+  $("careStatus").textContent = "Enter a U.S. city, state, or ZIP code, or choose Near me to search.";
 }
 
 async function care(opts = {}) {
   if (!last) return;
   const d = last.top_disease;
-  $("careStatus").textContent = opts.sample ? "Loading the bundled sample…" : "Searching OpenStreetMap live (can take ~10 s)…";
+  if (!opts.place && opts.lat == null) {
+    $("careStatus").textContent = "Enter a U.S. city, state, or ZIP code, or choose Near me to search.";
+    return;
+  }
+  $("careStatus").textContent = "Searching OpenStreetMap live (can take ~10 s)…";
   const res = await engine.findCare({ ...opts, specialty: d ? d.specialty : "General Medicine", risk: d ? d.risk_level : "medium",
-    place: opts.sample ? undefined : opts.place, lat: opts.lat, lon: opts.lon });
-  $("careStatus").innerHTML = `Near <b>${esc(res.origin.label)}</b> · ${esc(res.source)}` +
+    place: opts.place, lat: opts.lat, lon: opts.lon });
+  $("careStatus").innerHTML = res.error ? esc(res.error) : `Near <b>${esc(res.origin.label)}</b> · ${esc(res.source)}` +
     (d ? ` · ranked for <b>${esc(d.specialty)}</b>, ${esc(d.risk_level)} risk` : "");
   $("providers").innerHTML = res.providers.map((p) => `<li><a href="${p.maps_url}" target="_blank" rel="noreferrer"><b>${esc(p.name)}</b></a>` +
     ` <span class="score">${p.score.toFixed(2)}</span><br/><span class="muted small">${esc(p.why)}</span></li>`).join("") || "<li>No providers found.</li>";
-  if (window.L) {
+  if (window.L && Number.isFinite(res.origin.lat) && Number.isFinite(res.origin.lon)) {
     if (!map) {
       map = L.map("map", { scrollWheelZoom: false });
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
@@ -99,7 +103,6 @@ $("go").onclick = run;
 $("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); });
 $("careBtn").onclick = () => $("place").value.trim() && care({ place: $("place").value.trim() });
 $("place").addEventListener("keydown", (e) => { if (e.key === "Enter") $("careBtn").click(); });
-$("sampleBtn").onclick = () => care({ sample: true });
 $("geoBtn").onclick = () => navigator.geolocation?.getCurrentPosition(
   (pos) => care({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
   () => { $("careStatus").textContent = "Location permission denied. Type a place instead."; });

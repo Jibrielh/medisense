@@ -383,7 +383,7 @@ export function rankProviders(providers, origin, specialty = "General Medicine",
   return out.sort((a, b) => b.score - a.score).slice(0, topN);
 }
 // Public Overpass mirrors that send CORS headers. The main instance is busy at peak times (504/429),
-// so each is tried in turn; if all fail, findCare() falls back to the bundled snapshot and says so.
+// so each is tried in turn. If they all fail, findCare() reports the search error.
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
   "https://overpass.private.coffee/api/interpreter"];
 export async function fetchProviders(lat, lon, radius = 6000) {
@@ -403,20 +403,19 @@ export async function fetchProviders(lat, lon, radius = 6000) {
   throw new Error(`the public OpenStreetMap servers are busy right now (${last?.message})`);
 }
 export async function geocode(place) {
-  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`);
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q=${encodeURIComponent(place)}`);
   const js = await r.json();
   return js.length ? [+js[0].lat, +js[0].lon, js[0].display_name] : null;
 }
 
 // ------------------------------------------------------------------ pipeline
 export const DISCLAIMER = "Medisense is an educational project, not a medical device. It can be wrong. " +
-  "It does not replace a doctor. In an emergency call 108 (India) or your local emergency number.";
+  "It does not replace a doctor. In a medical emergency in the United States, call 911.";
 
 const r4 = (x) => Math.round(x * 1e4) / 1e4;
 export function createEngine(bundle) {
   const kb = new KB(bundle.kb), extractor = new SymptomExtractor(kb), clf = new Classifier(bundle.model);
   const reasoner = new Reasoner(kb), explainer = new Explainer(kb, bundle.tfidf);
-  const snapshot = { center: bundle.osm_snapshot.center, providers: parseElements(bundle.osm_snapshot.elements) };
   const fmt = (c) => ({ ...c, ml_prob: r4(c.ml_prob), kg_support: r4(c.kg_support), kg_explains: r4(c.kg_explains),
     kg_score: r4(c.kg_score), final: r4(c.final) });
 
@@ -448,17 +447,16 @@ export function createEngine(bundle) {
     try {
       if (lat == null && place) {
         const g = await geocode(place);
-        if (!g) throw new Error(`could not find "${place}"`);
+        if (!g) return { origin: { label: place }, source, error: `Could not find a U.S. location for "${place}".`, providers: [] };
         [lat, lon, label] = g;
       }
-      if (lat == null) throw new Error("no location given");
+      if (lat == null) return { origin: { label: "No location selected" }, source,
+        error: "Enter a U.S. city, state, or ZIP code, or use your current location.", providers: [] };
       providers = await fetchProviders(lat, lon);
       if (!providers.length) providers = await fetchProviders(lat, lon, 15000);
     } catch (e) {
-      [lat, lon] = snapshot.center; providers = snapshot.providers;
-      label = "SRM Kattankulathur, Chennai (sample)";
-      source = e.message === "no location given" ? "bundled OpenStreetMap snapshot"
-        : `live search unavailable: ${e.message}. Showing the bundled OpenStreetMap snapshot instead`;
+      return { origin: { lat, lon, label }, source,
+        error: `Live U.S. care search is unavailable: ${e.message}`, providers: [] };
     }
     return { origin: { lat, lon, label }, source, attribution: "Map data © OpenStreetMap contributors, ODbL",
       providers: rankProviders(providers, [lat, lon], specialty, risk) };

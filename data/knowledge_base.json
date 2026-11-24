@@ -429,7 +429,6 @@
    "label": "diarrhea",
    "synonyms": [
     "diarrhea",
-    "diarrhoea",
     "loose motion",
     "loose motions",
     "loose stools",
@@ -916,10 +915,10 @@
     "persistent vomiting",
     "extreme tiredness or restlessness"
    ],
-   "description": "A mosquito-borne viral infection spread by Aedes mosquitoes, common in India during and after the monsoon. Most people recover in about a week, but a small share develop severe dengue with bleeding and plasma leakage.",
+   "description": "A mosquito-borne viral infection spread by Aedes mosquitoes. Most people recover in about a week, but a small share develop severe dengue with bleeding and plasma leakage.",
    "precautions": [
     "Rest and drink plenty of fluids (ORS, water, coconut water).",
-    "Use paracetamol for fever; avoid aspirin and ibuprofen because they raise bleeding risk.",
+    "Ask a healthcare professional about safe fever relief; avoid aspirin and ibuprofen because they may raise bleeding risk.",
     "Use mosquito nets and repellent so the illness does not spread to others.",
     "Get a platelet count / NS1 or dengue antibody test as advised by a doctor."
    ],
@@ -1023,7 +1022,7 @@
    ],
    "description": "A mosquito-borne viral illness spread by Aedes mosquitoes. Its hallmark is severe, often disabling joint pain that can last weeks to months after the fever settles.",
    "precautions": [
-    "Rest, fluids and paracetamol for fever and pain.",
+    "Rest, fluids and acetaminophen for fever and pain.",
     "Avoid aspirin until dengue has been ruled out.",
     "Gentle joint movement once the fever settles; use mosquito protection."
    ],
@@ -1063,7 +1062,7 @@
    "description": "A contagious respiratory infection caused by influenza viruses. It starts suddenly with fever, body aches and exhaustion, and is usually more severe than a common cold.",
    "precautions": [
     "Rest, stay home and drink fluids.",
-    "Paracetamol for fever and aches.",
+    "Acetaminophen for fever and aches.",
     "Cover coughs and wash hands; an annual flu vaccine reduces risk."
    ],
    "see_doctor": "Most people recover within 1 to 2 weeks. See a doctor early if you are pregnant, elderly, have a chronic illness, or develop breathing difficulty."
@@ -1137,7 +1136,7 @@
    "description": "An infection caused by the SARS-CoV-2 coronavirus. Symptoms range from mild cold-like illness to pneumonia. Sudden loss of smell or taste is a distinctive sign.",
    "precautions": [
     "Test and isolate while symptomatic.",
-    "Rest, fluids and paracetamol for fever.",
+    "Rest, fluids and acetaminophen for fever.",
     "Monitor oxygen saturation with a pulse oximeter if available."
    ],
    "see_doctor": "Seek care if oxygen saturation drops below 94%, breathing becomes difficult, or you are in a high-risk group."
@@ -1167,10 +1166,10 @@
     "coughing blood",
     "severe breathlessness"
    ],
-   "description": "A bacterial infection by Mycobacterium tuberculosis that mainly affects the lungs and spreads through the air. India's national programme provides free testing and treatment.",
+   "description": "A bacterial infection caused by Mycobacterium tuberculosis that mainly affects the lungs and spreads through the air. Testing is available through healthcare providers and local health departments.",
    "precautions": [
     "Cover your mouth when coughing and keep rooms ventilated.",
-    "Get a sputum test (and chest X-ray) at a government TB centre or clinic.",
+    "Ask a healthcare provider or local health department about TB testing.",
     "If diagnosed, take every dose of the 6-month treatment."
    ],
    "see_doctor": "A cough lasting 2 weeks or more, especially with fever, night sweats or weight loss, needs a TB test."
@@ -1304,7 +1303,7 @@
    "description": "Inflammation of the sinuses, usually after a cold, causing facial pain or pressure, a blocked nose and thick discharge.",
    "precautions": [
     "Steam inhalation and saline nasal rinses.",
-    "Paracetamol for pain.",
+    "Acetaminophen for pain.",
     "Most cases clear in 2 to 3 weeks without antibiotics."
    ],
    "see_doctor": "See a doctor if symptoms last more than 10 days, are severe, or include eye swelling or vision changes."
@@ -1393,9 +1392,9 @@
    "red_flags": [
     "signs of dehydration (very little urine, dizziness)",
     "blood in stool",
-    "diarrhoea lasting more than 3 days"
+    "diarrhea lasting more than 3 days"
    ],
-   "description": "Infection of the stomach and intestines, often from contaminated food or water ('stomach flu' or food poisoning). It causes diarrhoea, vomiting and cramps.",
+   "description": "Infection of the stomach and intestines, often from contaminated food or water ('stomach flu' or food poisoning). It causes diarrhea, vomiting and cramps.",
    "precautions": [
     "Oral rehydration solution (ORS) after each loose stool.",
     "Small, light meals; continue breastfeeding infants.",
@@ -1673,7 +1672,7 @@
    "see_doctor": "Repeated episodes need a review of medicines with a doctor. Unconsciousness or seizure means calling emergency services."
   },
   "anemia": {
-   "name": "Iron-deficiency anaemia",
+   "name": "Iron-deficiency anemia",
    "icd10": "D50",
    "specialty": "Hematology",
    "risk_level": "medium",
@@ -1700,10 +1699,10 @@
     "fainting",
     "breathlessness at rest"
    ],
-   "description": "A lack of healthy red blood cells, most often due to low iron. It is very common in India, especially among women, and causes tiredness, pale skin and breathlessness.",
+   "description": "A lack of healthy red blood cells, most often due to low iron. It can cause tiredness, pale skin and breathlessness.",
    "precautions": [
-    "Get a haemoglobin test.",
-    "Eat iron-rich foods (greens, legumes, jaggery, meat) with vitamin C.",
+    "Ask a healthcare provider whether you need a hemoglobin test.",
+    "Eat iron-rich foods such as leafy greens, legumes and meat with vitamin C.",
     "Take iron supplements only as advised."
    ],
    "see_doctor": "See a doctor for a blood test if you have persistent tiredness with pale skin."
@@ -1989,7 +1988,7 @@
    "precautions": [
     "Stay home until all blisters have crusted.",
     "Use calamine lotion and keep nails short.",
-    "Use paracetamol for fever; avoid aspirin in children."
+    "Ask a healthcare professional about appropriate fever relief; do not give aspirin to children unless a healthcare professional directs you to."
    ],
    "see_doctor": "See a doctor if you are an adult, pregnant or immunocompromised, or if complications appear."
   },

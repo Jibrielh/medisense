@@ -16,7 +16,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 class DiagnoseRequest(BaseModel):
     text: str = Field(..., min_length=3, examples=["high fever for 3 days with joint pain and a rash"])
-    place: Optional[str] = Field(None, examples=["Tambaram, Chennai"])
+    place: Optional[str] = Field(None, examples=["Seattle, WA"])
     lat: Optional[float] = None
     lon: Optional[float] = None
     find_providers: bool = True

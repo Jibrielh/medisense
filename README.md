@@ -1,10 +1,12 @@
 # Medisense: Hybrid Neuro-Symbolic Healthcare Assistant
 
-### 🚀 Live demo: **https://JibrielH.github.io/medisense/**
+The repository is private, so the public GitHub Pages demo is currently offline.
 
-Type symptoms (or tap an example) and you get the whole pipeline: extracted symptoms, triage, ranked diagnoses with the rule trace, a cited explanation, and ranked hospitals on a map (search any place, or use your location). It runs entirely in your browser.
+Type symptoms (or tap an example) and you get the whole pipeline: extracted symptoms, triage, ranked diagnoses with the rule trace, a cited explanation, and nearby care results (search a U.S. city, state, or ZIP code, or use your location).
 
-> **Educational project, not a medical device.** It can be wrong and does not replace a doctor. In an emergency call **108** (India) or your local emergency number.
+Symptom input is currently English only. Place-name searches are limited to the United States.
+
+> **Educational project, not a medical device.** It can be wrong and does not replace a doctor. In an emergency in the United States, call **911**.
 
 Medisense turns a plain-English symptom description into **explainable** condition suggestions:
 
@@ -14,11 +16,9 @@ Medisense turns a plain-English symptom description into **explainable** conditi
 4. **RAG:** retrieves the matching sections of a curated medical knowledge base and writes a cited explanation (what it is, what helps, when to see a doctor). It works with **no API key**; an LLM is optional and is grounding-checked.
 5. **Geospatial care finder:** finds nearby hospitals and clinics with the free OpenStreetMap APIs and ranks them by a **weighted score** (distance, specialty match, emergency readiness for the risk level, facility type, data quality).
 
-There's a **Streamlit demo**, a **CLI**, a **FastAPI** service and an in-browser live demo. Everything runs on CPU in about 15 ms per query.
+There's a **Streamlit app**, a **CLI**, a **FastAPI** service and an in-browser demo. Diagnosis runs locally; nearby care search requires an internet connection.
 
-| Live web demo | Streamlit app |
-|---|---|
-| ![Live demo](docs/live-demo.jpg) | ![Streamlit demo](docs/streamlit-demo.png) |
+The browser version is in `web/`; generate its model bundle with `python scripts/export_web.py` and serve that directory locally.
 
 ## Architecture
 
@@ -110,7 +110,7 @@ pip install -r requirements-dev.txt
 python scripts/train.py                                 # ~3 s: generates data, trains, saves models/ensemble.joblib
 streamlit run app.py                                    # demo UI at http://localhost:8501
 python -m neurosy.cli "burning when I pee and peeing often, no fever"
-python -m neurosy.cli "high fever and joint pain" --place "Tambaram, Chennai"   # live OpenStreetMap search
+python -m neurosy.cli "high fever and joint pain" --place "Seattle, WA"   # U.S. OpenStreetMap search
 uvicorn neurosy.api:app --reload                        # REST API, docs at http://localhost:8000/docs
 ```
 
@@ -120,7 +120,7 @@ The model also trains automatically on first use if `models/ensemble.joblib` is 
 
 ```bash
 curl -X POST localhost:8000/diagnose -H "Content-Type: application/json" \
-     -d '{"text": "cough for 3 weeks with phlegm, night sweats and weight loss", "place": "Guindy, Chennai"}'
+     -d '{"text": "cough for 3 weeks with phlegm, night sweats and weight loss", "place": "Seattle, WA"}'
 ```
 
 Returns the extracted symptoms, predictions (ML probability, KG score, final score, status, rule trace), rejected candidates, triage, the RAG explanation with sources, and ranked providers.
@@ -132,19 +132,19 @@ Returns the extracted symptoms, predictions (ML probability, KG score, final sco
 | Dense retrieval | `pip install -r requirements-optional.txt` and `NEUROSY_EMBEDDINGS=1` (all-MiniLM-L6-v2 + FAISS) |
 | LLM-written explanation | `NEUROSY_LLM_API_KEY=...` (any OpenAI-compatible endpoint; `NEUROSY_LLM_BASE_URL`, `NEUROSY_LLM_MODEL`). The answer is only used if every sentence passes the grounding check against the retrieved sources; otherwise the extractive answer is kept. |
 
-## How the live demo works
+## How the browser version works
 
-GitHub Pages only serves static files, so `web/` contains a **JavaScript port of the pipeline** (`web/engine.js`): the same NLP rules (including a port of Python's `difflib` for typo matching), the same rules and fusion, TF-IDF retrieval and provider ranking. The trained scikit-learn ensemble is exported **tree by tree** to JSON (`scripts/export_web.py`, about 0.3 MB gzipped), so the browser computes exactly the same `predict_proba`.
+`web/` contains a **JavaScript port of the pipeline** (`web/engine.js`): the same NLP rules (including a port of Python's `difflib` for typo matching), the same rules and fusion, TF-IDF retrieval and provider ranking. The trained scikit-learn ensemble is exported **tree by tree** to JSON (`scripts/export_web.py`, about 0.3 MB gzipped), so the browser computes exactly the same `predict_proba`.
 
-`scripts/check_web_parity.py` runs all 51 vignettes plus edge cases through both engines. It requires identical symptoms, diagnoses, rule status, triage and explanation, with scores equal to within 0.001. It currently passes on 59/59. CI runs it, and the Pages workflow refuses to deploy if it fails.
+`scripts/check_web_parity.py` runs all 51 vignettes plus edge cases through both engines. It requires identical symptoms, diagnoses, rule status, triage and explanation, with scores equal to within 0.001. CI runs this parity check.
 
-The hospital search calls the free public OpenStreetMap servers (Nominatim for the place, Overpass for hospitals and clinics) straight from your browser. Those servers are shared and sometimes overloaded. When they don't answer, the demo says so and ranks a bundled OpenStreetMap snapshot around SRM Kattankulathur instead, so the ranking step always works.
+The care search uses the public OpenStreetMap servers (Nominatim for U.S. place names, Overpass for hospitals and clinics). The servers are shared and may be busy; if they do not answer, Medisense reports that no providers were found instead of showing results from an unrelated location. The care finder needs an internet connection.
 
 ## Data
 
-- **Knowledge base** (`data/knowledge_base.json`): 34 common conditions (with an Indian context: dengue, malaria, typhoid, chikungunya, TB and others) and 79 symptoms with synonyms. Each condition has ICD-10 code, specialty, risk level, weighted symptoms, required findings, red flags, description, precautions and when to see a doctor. It was written for this project from general public-health information. It is a teaching resource, not clinical guidance.
+- **Knowledge base** (`data/knowledge_base.json`): 34 conditions and 79 symptoms with synonyms. Each condition has an ICD-10 code, specialty, risk level, weighted symptoms, required findings, red flags, description, precautions and when to see a doctor. The content is written for this project from general public-health information. It is educational and has not been clinically validated for U.S. use.
 - **Training data is synthetic** (`neurosy/data.py`). Patients are sampled from the knowledge-base profiles, with each symptom included at its prevalence, required findings guaranteed, and random noise symptoms added. It is seeded and reproducible. I chose synthetic data on purpose: the popular Kaggle symptom datasets have unclear licences and heavy duplication, where the same rows appear in train and test, which inflates accuracy to ~100%.
-- **Map data:** OpenStreetMap via the Overpass and Nominatim APIs. An offline snapshot of providers around SRM Kattankulathur is bundled (`data/osm_providers_chennai_srm.json`, © OpenStreetMap contributors, **ODbL**).
+- **Map data:** OpenStreetMap via the Overpass and Nominatim APIs. Place-name searches are restricted to the United States. © OpenStreetMap contributors, **ODbL**.
 
 ## Results (measured: `python scripts/evaluate.py`)
 
@@ -188,13 +188,13 @@ neurosy/
   model.py       RF + DT soft-voting ensemble (train / save / load)
   symbolic.py    knowledge-graph scoring, rules R1-R5, abstention, triage
   rag.py         chunking, TF-IDF / embedding retrieval, cited answers, grounding check
-  geo.py         Nominatim + Overpass (with mirrors), weighted provider ranking, offline snapshot
+  geo.py         U.S.-restricted Nominatim + Overpass search and weighted provider ranking
   pipeline.py    end-to-end orchestration
   cli.py, api.py command line + FastAPI
 app.py           Streamlit demo
-web/             live demo: index.html, app.js, engine.js (JS port), model exported by CI
+web/             browser version: index.html, app.js, engine.js (JS port), exported model bundle
 scripts/         train.py, evaluate.py, export_web.py, check_web_parity.py
-data/            knowledge base, vignettes, OSM snapshot
+data/            knowledge base and vignettes
 tests/           pytest suite (NLP, rules, RAG grounding, geo ranking, API)
 ```
 
@@ -204,7 +204,7 @@ tests/           pytest suite (NLP, rules, RAG grounding, geo ranking, API)
 pytest -q
 ```
 
-GitHub Actions runs the tests on Python 3.10 and 3.12, the full evaluation and the Python↔browser parity check on every push. A second workflow trains the model, exports it and deploys the live demo to GitHub Pages.
+GitHub Actions runs the CI workflow on pushes and pull requests.
 
 ## Limitations and future work
 
@@ -212,8 +212,8 @@ GitHub Actions runs the tests on Python 3.10 and 3.12, the full evaluation and t
 - Learn symptom synonyms with embeddings, or use a clinical NER model (scispaCy / MedCAT), instead of a hand-written list. The held-out misses show why.
 - Add age, sex, vitals, travel and season as features. Dengue vs chikungunya vs influenza often depends on them.
 - Calibrate the fused score (Platt/isotonic) so it can be read as a probability.
-- Multilingual input (Tamil, Hindi).
+- U.S. clinical review and validation against representative U.S. data.
 
 ## Data attribution
 
-The bundled OpenStreetMap extract is © OpenStreetMap contributors under the ODbL.
+OpenStreetMap data is © OpenStreetMap contributors under the ODbL.

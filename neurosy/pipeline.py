@@ -22,8 +22,7 @@ class NeuroSyRAG:
         self.explainer = Explainer(self.kb)
 
     def diagnose(self, text: str, place: Optional[str] = None, lat: Optional[float] = None,
-                 lon: Optional[float] = None, top_k: int = 3, find_providers: bool = True,
-                 offline: bool = False) -> dict:
+                 lon: Optional[float] = None, top_k: int = 3, find_providers: bool = True) -> dict:
         t0 = time.perf_counter()
         ex = self.extractor.extract(text)
         ml = self.classifier.predict_proba(ex.present)
@@ -46,11 +45,11 @@ class NeuroSyRAG:
         }
         if top is not None:
             out["explanation"] = self.explainer.explain(top.disease, sorted(ex.reported), text)
-        if find_providers and (place or lat is not None or offline):
+        if find_providers and (place or lat is not None):
             d = self.kb.diseases[top.disease] if top else None
             out["care"] = find_care(place, lat, lon,
                                     specialty=d.specialty if d else "General Medicine",
-                                    risk_level=d.risk_level if d else "medium", offline=offline)
+                                    risk_level=d.risk_level if d else "medium")
         out["latency_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         return out
 

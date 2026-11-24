@@ -11,20 +11,16 @@ department, and a skin rash favours a nearby clinic with a matching speciality.
           + 0.10 * facility fit (hospital vs clinic for the risk level)
           + 0.10 * data quality (opening hours / phone / website known)
 
-If the network is unavailable, a bundled OpenStreetMap snapshot around SRM
-Kattankulathur (Chennai) is used. Map data (c) OpenStreetMap contributors, ODbL.
+Place-name lookups are restricted to the United States. Map data (c)
+OpenStreetMap contributors, ODbL.
 """
 from __future__ import annotations
 
-import json
 import math
 from dataclasses import asdict, dataclass
-from pathlib import Path
 from typing import List, Optional, Tuple
 
 import requests
-
-from .knowledge import DATA_DIR
 
 UA = {"User-Agent": "Medisense/1.0 (educational project; github.com/JibrielH/medisense)"}
 OVERPASS_MIRRORS = [
@@ -33,8 +29,6 @@ OVERPASS_MIRRORS = [
     "https://overpass.kumi.systems/api/interpreter",
 ]
 NOMINATIM = "https://nominatim.openstreetmap.org/search"
-SNAPSHOT = DATA_DIR / "osm_providers_chennai_srm.json"
-
 # knowledge-base specialty -> OSM healthcare:speciality / name keywords
 SPECIALTY_TERMS = {
     "Infectious Diseases": ["infectious", "general", "internal", "fever"],
@@ -87,7 +81,8 @@ def haversine_km(a: Tuple[float, float], b: Tuple[float, float]) -> float:
 
 
 def geocode(place: str, timeout: float = 10) -> Optional[Tuple[float, float, str]]:
-    r = requests.get(NOMINATIM, params={"q": place, "format": "json", "limit": 1}, headers=UA, timeout=timeout)
+    r = requests.get(NOMINATIM, params={"q": place, "format": "json", "limit": 1, "countrycodes": "us"},
+                     headers=UA, timeout=timeout)
     r.raise_for_status()
     js = r.json()
     if not js:
@@ -134,11 +129,6 @@ out center tags;"""
     raise RuntimeError(f"all Overpass mirrors failed: {last}")
 
 
-def load_snapshot() -> Tuple[Tuple[float, float], List[Provider]]:
-    js = json.loads(Path(SNAPSHOT).read_text())
-    return tuple(js["center"]), _parse_elements(js["elements"])
-
-
 def rank_providers(providers: List[Provider], origin: Tuple[float, float], specialty: str = "General Medicine",
                    risk_level: str = "low", top_n: int = 5) -> List[Provider]:
     terms = SPECIALTY_TERMS.get(specialty, ["general"])
@@ -170,27 +160,24 @@ def rank_providers(providers: List[Provider], origin: Tuple[float, float], speci
 
 
 def find_care(place: Optional[str] = None, lat: Optional[float] = None, lon: Optional[float] = None,
-              specialty: str = "General Medicine", risk_level: str = "low", top_n: int = 5,
-              offline: bool = False) -> dict:
-    """Locate the user and return ranked providers. Falls back to the bundled snapshot offline."""
+              specialty: str = "General Medicine", risk_level: str = "low", top_n: int = 5) -> dict:
+    """Find and rank nearby providers using live OpenStreetMap data."""
     source, label = "openstreetmap-live", place or (f"{lat:.4f}, {lon:.4f}" if lat is not None else None)
     try:
-        if offline:
-            raise RuntimeError("offline mode")
         if lat is None and place:
             g = geocode(place)
             if not g:
-                return {"error": f"Could not find '{place}'.", "providers": []}
+                return {"error": f"Could not find a U.S. location for '{place}'.", "providers": []}
             lat, lon, label = g
         if lat is None:
-            raise RuntimeError("no location given")
+            return {"error": "Enter a U.S. city, state, or ZIP code, or use your current location.", "providers": []}
         providers = fetch_providers(lat, lon)
         if not providers:
             providers = fetch_providers(lat, lon, radius_m=15000)
-    except Exception as exc:  # network down, rate limited, no location...
-        (lat, lon), providers = load_snapshot()
-        source = f"bundled OSM snapshot (SRM Kattankulathur, Chennai), because: {exc}"
-        label = "SRM Kattankulathur, Chennai (sample)"
+    except Exception as exc:  # network down or rate limited
+        return {"origin": {"lat": lat, "lon": lon, "label": label}, "source": source,
+                "error": f"Live U.S. care search is unavailable: {exc}",
+                "attribution": "Map data (c) OpenStreetMap contributors, ODbL", "providers": []}
     ranked = rank_providers(providers, (lat, lon), specialty, risk_level, top_n)
     return {"origin": {"lat": lat, "lon": lon, "label": label}, "source": source,
             "attribution": "Map data (c) OpenStreetMap contributors, ODbL",

@@ -1,4 +1,4 @@
-from neurosy.geo import haversine_km, rank_providers, load_snapshot
+from neurosy.geo import Provider, haversine_km, rank_providers
 from neurosy.rag import Explainer, grounded
 
 
@@ -24,13 +24,18 @@ def test_llm_answer_falls_back_when_ungrounded(monkeypatch):
 
 
 def test_haversine():
-    assert abs(haversine_km((12.8231, 80.0442), (13.0827, 80.2707)) - 37.8) < 1.5  # SRM KTR -> Chennai centre
+    assert abs(haversine_km((40.0, -75.0), (41.0, -75.0)) - 111.2) < 1.0
 
 
 def test_provider_ranking_prefers_near_hospitals_for_high_risk():
-    origin, providers = load_snapshot()
+    origin = (38.9072, -77.0369)
+    providers = [
+        Provider("Example Community Hospital", *origin, "hospital", emergency=True,
+                 speciality="infectious diseases", phone=True, website=True),
+        Provider("Example Walk-in Clinic", 38.9102, -77.0300, "clinic"),
+    ]
     ranked = rank_providers(providers, origin, "Infectious Diseases", "high", top_n=5)
-    assert len(ranked) == 5
+    assert len(ranked) == 2
     assert ranked[0].score >= ranked[-1].score
     assert ranked[0].kind == "hospital"
 

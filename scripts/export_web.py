@@ -5,9 +5,8 @@ Writes web/model/bundle.json with:
   * the RF + DT ensemble as plain arrays (every tree: feature, threshold, children,
     leaf class distributions), so the browser reproduces predict_proba exactly
   * the TF-IDF vocabulary, idf weights and the normalised chunk vectors for RAG
-  * the bundled OpenStreetMap snapshot
 
-Run:  python scripts/export_web.py      (CI runs it before deploying to GitHub Pages)
+Run:  python scripts/export_web.py      (CI runs it for browser/Python parity checks)
 """
 import json
 import sys
@@ -64,7 +63,6 @@ def main():
         "model": forest,
         "tfidf": {"vocabulary": vocab, "idf": [round(float(x), 6) for x in vec.idf_],
                   "stop_words": sorted(ENGLISH_STOP_WORDS), "chunks": chunks},
-        "osm_snapshot": json.loads((ROOT / "data" / "osm_providers_chennai_srm.json").read_text()),
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(bundle, separators=(",", ":")))

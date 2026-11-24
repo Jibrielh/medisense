@@ -7,5 +7,5 @@ __version__ = "1.0.0"
 
 DISCLAIMER = (
     "Medisense is an educational project, not a medical device. It can be wrong. "
-    "It does not replace a doctor. In an emergency call 108 (India) or your local emergency number."
+    "It does not replace a doctor. In a medical emergency in the United States, call 911."
 )

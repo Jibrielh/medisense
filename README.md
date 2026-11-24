@@ -1,6 +1,6 @@
 # Medisense: Hybrid Neuro-Symbolic Healthcare Assistant
 
-The repository is private, so the public GitHub Pages demo is currently offline.
+### 🚀 Live demo: **https://JibrielH.github.io/medisense/**
 
 Type symptoms (or tap an example) and you get the whole pipeline: extracted symptoms, triage, ranked diagnoses with the rule trace, a cited explanation, and nearby care results (search a U.S. city, state, or ZIP code, or use your location).
 

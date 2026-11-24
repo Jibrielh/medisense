@@ -2,7 +2,7 @@
 
 ### 🚀 Live demo: **https://JibrielH.github.io/medisense/**
 
-Type symptoms (or tap an example) and you get the whole pipeline: extracted symptoms, triage, ranked diagnoses with the rule trace, a cited explanation, and nearby care results (search a U.S. city, state, or ZIP code, or use your location).
+Type symptoms (or tap an example) and you get the whole pipeline: extracted symptoms, triage, ranked diagnoses with the rule trace, a cited explanation, and nearby care results. The browser demo starts with clearly labeled sample providers near Washington, DC; search a U.S. city, state, or ZIP code, or use your location for nearby results.
 
 Symptom input is currently English only. Place-name searches are limited to the United States.
 

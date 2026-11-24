@@ -1,6 +1,7 @@
 import { createEngine, DISCLAIMER } from "./engine.js";
 
 const $ = (id) => document.getElementById(id);
+const SAMPLE_PLACE = "Washington, DC";
 const EXAMPLES = [
   "High fever for 3 days, terrible headache, pain behind my eyes and aching joints",
   "Fever with shivering chills every evening then heavy sweating, headache, no cough",
@@ -60,7 +61,7 @@ function render(r) {
     $("sources").innerHTML = r.explanation.sources.map((s) => `<li><b>${esc(s.title)}</b> <span class="muted small">score ${s.score}</span><br/>${esc(s.text)}</li>`).join("");
   }
   $("latency").textContent = `Analysed in ${r.latency_ms} ms, entirely in your browser`;
-  $("careStatus").textContent = "Enter a U.S. city, state, or ZIP code, or choose Near me to search.";
+  care({ place: SAMPLE_PLACE, sample: true });
 }
 
 async function care(opts = {}) {
@@ -70,10 +71,12 @@ async function care(opts = {}) {
     $("careStatus").textContent = "Enter a U.S. city, state, or ZIP code, or choose Near me to search.";
     return;
   }
-  $("careStatus").textContent = "Searching OpenStreetMap live (can take ~10 s)…";
+  $("careStatus").textContent = opts.sample
+    ? `Loading sample hospitals and clinics near ${SAMPLE_PLACE}…`
+    : "Searching OpenStreetMap live (can take ~10 s)…";
   const res = await engine.findCare({ ...opts, specialty: d ? d.specialty : "General Medicine", risk: d ? d.risk_level : "medium",
     place: opts.place, lat: opts.lat, lon: opts.lon });
-  $("careStatus").innerHTML = res.error ? esc(res.error) : `Near <b>${esc(res.origin.label)}</b> · ${esc(res.source)}` +
+  $("careStatus").innerHTML = res.error ? esc(res.error) : `${opts.sample ? "Sample near" : "Near"} <b>${esc(res.origin.label)}</b> · ${esc(res.source)}` +
     (d ? ` · ranked for <b>${esc(d.specialty)}</b>, ${esc(d.risk_level)} risk` : "");
   $("providers").innerHTML = res.providers.map((p) => `<li><a href="${p.maps_url}" target="_blank" rel="noreferrer"><b>${esc(p.name)}</b></a>` +
     ` <span class="score">${p.score.toFixed(2)}</span><br/><span class="muted small">${esc(p.why)}</span></li>`).join("") || "<li>No providers found.</li>";
@@ -103,6 +106,7 @@ $("go").onclick = run;
 $("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); });
 $("careBtn").onclick = () => $("place").value.trim() && care({ place: $("place").value.trim() });
 $("place").addEventListener("keydown", (e) => { if (e.key === "Enter") $("careBtn").click(); });
+$("sampleBtn").onclick = () => care({ place: SAMPLE_PLACE, sample: true });
 $("geoBtn").onclick = () => navigator.geolocation?.getCurrentPosition(
   (pos) => care({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
   () => { $("careStatus").textContent = "Location permission denied. Type a place instead."; });
